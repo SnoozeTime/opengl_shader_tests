@@ -1,3 +1,0 @@
-/home/benoit/PROJECTS/opengl_shader_tests/build/CMakeFiles/edit_cache.dir
-/home/benoit/PROJECTS/opengl_shader_tests/build/CMakeFiles/rebuild_cache.dir
-/home/benoit/PROJECTS/opengl_shader_tests/build/CMakeFiles/Tutorial.dir
