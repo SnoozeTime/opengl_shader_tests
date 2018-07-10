@@ -1,0 +1,1 @@
+/usr/bin/c++   -O3 -DNDEBUG   CMakeFiles/Tutorial.dir/src/main.cpp.o CMakeFiles/Tutorial.dir/src/glad.c.o CMakeFiles/Tutorial.dir/src/shader.cpp.o  -o Tutorial -rdynamic -lGL -ldl -lglfw 
