@@ -52,8 +52,12 @@ Shader::Shader(const char* vertexShaderSource, const char* fragmentShaderSource)
   glDeleteShader(fragmentShader);
 }
 
-void Shader::use() {
+void Shader::use() const {
   if (m_loaded) {
     glUseProgram(m_program_id);
   }
+}
+
+void Shader::set_int(const char* uniform_name, int location) const {
+  glUniform1i(glGetUniformLocation(m_program_id, uniform_name), location);
 }
