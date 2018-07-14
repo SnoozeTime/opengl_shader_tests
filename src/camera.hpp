@@ -20,7 +20,7 @@ const float SENSITIVITY =  0.1f;
 class Camera {
 
 private:
-  glm::vec3 m_cameraPos;
+  glm::vec3 m_position;
   glm::vec3 Front;
   glm::vec3 Up;
   glm::vec3 Right;
@@ -31,7 +31,7 @@ private:
 
 public:
   Camera(glm::vec3 cameraPos, glm::vec3 cameraFront, glm::vec3 cameraUp):
-    m_cameraPos(cameraPos),
+    m_position(cameraPos),
     Front(cameraFront),
     m_worldUp(cameraUp),
     m_cameraSpeed(SPEED),
@@ -41,10 +41,14 @@ public:
   }
 
   glm::mat4 getLookAt() const {
-    return glm::lookAt(m_cameraPos, // position of the camera
-		       m_cameraPos + Front, // where to look
+    return glm::lookAt(m_position, // position of the camera
+		       m_position + Front, // where to look
 		       Up); // up vector for the world coord
 
+  }
+
+  const glm::vec3& position() const {
+    return m_position;
   }
 
   void move_direction(CameraMovement direction, float delta) {
@@ -52,16 +56,16 @@ public:
     float offset = m_cameraSpeed * delta;
     switch (direction) {
     case FORWARD:
-      m_cameraPos += Front * offset;
+      m_position += Front * offset;
       break;
     case BACKWARD:
-      m_cameraPos -= Front * offset;
+      m_position -= Front * offset;
       break;
     case RIGHT:
-      m_cameraPos += Right * offset;
+      m_position += Right * offset;
       break;
     case LEFT:
-      m_cameraPos -= Right * offset;
+      m_position -= Right * offset;
       break;
     }
   }
