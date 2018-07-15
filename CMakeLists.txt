@@ -21,6 +21,9 @@ target_link_libraries(Texture GL dl glfw)
 
 # About lightning
 add_executable(Lightning src/lighting.cpp
+  src/managers/FileSystem.cpp
+  src/stb_image.cpp
   src/glad.c)
 target_include_directories(Lightning PRIVATE "include")
 target_link_libraries(Lightning GL dl glfw)
+

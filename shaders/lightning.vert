@@ -1,6 +1,7 @@
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aNormal;
+layout (location = 2) in vec2 aTextCoords;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -9,6 +10,7 @@ uniform mat4 projection;
 out vec3 Normal;
 // position of the fragment.
 out vec3 FragPos;
+out vec2 TextCoords;
 
 void main()
 {
@@ -24,4 +26,6 @@ void main()
   // the transpose of the inverse of the upper-left corner of the model matrix
   Normal = mat3(transpose(inverse(model))) * aNormal;
 
+  // Texture passed to the fragment shader.
+  TextCoords = aTextCoords;
 }
