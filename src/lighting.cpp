@@ -12,6 +12,7 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow *window);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+unsigned int loadTexture(char const * path);
 
 // settings
 const unsigned int SCR_WIDTH = 800;
@@ -26,6 +27,9 @@ bool firstMouse = true;
 Camera camera(glm::vec3(0.0f, 0.0f,  3.0f),
 	      glm::vec3(0.0f, 0.0f, -1.0f),
 	      glm::vec3(0.0f, 1.0f,  0.0f));
+
+FileSystem fs("../resources");
+
 
 int main()
 {
@@ -52,7 +56,7 @@ int main()
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress)))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
@@ -127,9 +131,9 @@ int main()
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8  * sizeof(float), (void*)(3 * sizeof(float)));
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8  * sizeof(float), (void*)(6 * sizeof(float)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), static_cast<void*>(0));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8  * sizeof(float), reinterpret_cast<void*>((3 * sizeof(float))));
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8  * sizeof(float), reinterpret_cast<void*>((6 * sizeof(float))));
 
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -139,36 +143,13 @@ int main()
     glGenVertexArrays(1, &lampVAO);
     glBindVertexArray(lampVAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), static_cast<void*>(0));
     glEnableVertexAttribArray(0);
 
         // load and create a texture
     // -------------------------
-    unsigned int diffuseMap;
-    // texture 1
-    // ---------
-    glGenTextures(1, &diffuseMap);
-    glBindTexture(GL_TEXTURE_2D, diffuseMap);
-     // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    FileSystem fs("../resources");
-    ImageData img = fs.loadImage("container2.png");
-
-    if (img.data())
-    {
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img.width(), img.height(), 0, GL_RGB, GL_UNSIGNED_BYTE, img.data());
-      glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "../resources/Failed to load texture" << std::endl;
-    }
-
+    unsigned int diffuseMap = loadTexture("container2.png");
+    unsigned int specularMap = loadTexture("container2_specular.png");
 
     // tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
     // -------------------------------------------------------------------------------------------
@@ -176,10 +157,10 @@ int main()
 
     glfwSetCursorPosCallback(window, mouse_callback);
 
-    glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
     ourShader.use();
     ourShader.setInt("material.diffuse", 0);
+    ourShader.setInt("material.specular", 1);
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -208,10 +189,6 @@ int main()
       ourShader.setVec3("lightColor", 1, 1, 1);
       ourShader.setVec3("objectColor", 1, 0, 0.3);
       ourShader.setVec3("viewPos", camera.position());
-
-      ourShader.setVec3("material.ambient",  1.0f, 0.5f, 0.31f);
-      ourShader.setVec3("material.diffuse",  1.0f, 0.5f, 0.31f);
-      ourShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
       ourShader.setFloat("material.shininess", 32.0f);
 
       // bind diffuse map
@@ -222,10 +199,14 @@ int main()
       ourShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
       ourShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
+      // Bind specular map
+      glActiveTexture(GL_TEXTURE1);
+      glBindTexture(GL_TEXTURE_2D, specularMap);
+
       ourShader.setVec3("light.position", lightPos);
       // view/projection
       glm::mat4 view = camera.getLookAt();
-      glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float) SCR_WIDTH/SCR_HEIGHT, 0.1f, 100.0f);
+      glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(SCR_WIDTH/SCR_HEIGHT), 0.1f, 100.0f);
 
       // local -> world
       glm::mat4 model = glm::mat4(1.0);
@@ -300,7 +281,7 @@ void processInput(GLFWwindow *window)
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
 // ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+void framebuffer_size_callback(GLFWwindow*, int width, int height)
 {
     // make sure the viewport matches the new window dimensions; note that width and
     // height will be significantly larger than specified on retina displays.
@@ -309,7 +290,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+void mouse_callback(GLFWwindow*, double xpos, double ypos)
 {
     if (firstMouse)
     {
@@ -325,4 +306,40 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     lastY = ypos;
 
     camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+// utility function for loading a 2D texture from file
+// ---------------------------------------------------
+unsigned int loadTexture(char const * path)
+{
+    unsigned int textureID;
+    glGenTextures(1, &textureID);
+
+    ImageData img = fs.load_image(path);
+
+    if (img.data())
+    {
+      GLenum format = GL_RED;
+      if (img.nr_components() == 1)
+	format = GL_RED;
+      else if (img.nr_components() == 3)
+	format = GL_RGB;
+      else if (img.nr_components() == 4)
+	format = GL_RGBA;
+
+      glBindTexture(GL_TEXTURE_2D, textureID);
+      glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(format), img.width(), img.height(), 0, format, GL_UNSIGNED_BYTE, img.data());
+      glGenerateMipmap(GL_TEXTURE_2D);
+
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    }
+    else
+    {
+        std::cout << "Texture failed to load at path: " << path << std::endl;
+    }
+
+    return textureID;
 }

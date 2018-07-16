@@ -33,6 +33,8 @@ public:
   Camera(glm::vec3 cameraPos, glm::vec3 cameraFront, glm::vec3 cameraUp):
     m_position(cameraPos),
     Front(cameraFront),
+    Up(),
+    Right(),
     m_worldUp(cameraUp),
     m_cameraSpeed(SPEED),
     yaw(YAW),
@@ -67,16 +69,9 @@ public:
     case LEFT:
       m_position -= Right * offset;
       break;
+    default:
+      break;
     }
-  }
-
-  void set_angles(float yaw, float pitch) {
-    glm::vec3 front;
-    front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-    front.y = sin(glm::radians(pitch));
-    front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-    Front = glm::normalize(front);
-    updateVectors();
   }
 
   // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.

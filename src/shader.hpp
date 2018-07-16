@@ -15,7 +15,8 @@ public:
     unsigned int ID;
     // constructor generates the shader on the fly
     // ------------------------------------------------------------------------
-    Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr)
+  Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr):
+    ID(0)
     {
         // 1. retrieve the vertex/fragment source code from filePath
         std::string vertexCode;
@@ -73,29 +74,31 @@ public:
         glShaderSource(fragment, 1, &fShaderCode, NULL);
         glCompileShader(fragment);
         checkCompileErrors(fragment, "FRAGMENT");
-        // if geometry shader is given, compile geometry shader
-        unsigned int geometry;
-        if(geometryPath != nullptr)
-        {
-            const char * gShaderCode = geometryCode.c_str();
-            geometry = glCreateShader(GL_GEOMETRY_SHADER);
-            glShaderSource(geometry, 1, &gShaderCode, NULL);
-            glCompileShader(geometry);
-            checkCompileErrors(geometry, "GEOMETRY");
-        }
+
         // shader Program
         ID = glCreateProgram();
         glAttachShader(ID, vertex);
         glAttachShader(ID, fragment);
+
+	// if geometry shader is given, compile geometry shader
         if(geometryPath != nullptr)
-            glAttachShader(ID, geometry);
+        {
+	  unsigned int geometry;
+	  const char * gShaderCode = geometryCode.c_str();
+	  geometry = glCreateShader(GL_GEOMETRY_SHADER);
+	  glShaderSource(geometry, 1, &gShaderCode, NULL);
+	  glCompileShader(geometry);
+	  checkCompileErrors(geometry, "GEOMETRY");
+	  glAttachShader(ID, geometry);
+	  glDeleteShader(geometry);
+        }
+
+
         glLinkProgram(ID);
         checkCompileErrors(ID, "PROGRAM");
         // delete the shaders as they're linked into our program now and no longer necessery
         glDeleteShader(vertex);
         glDeleteShader(fragment);
-        if(geometryPath != nullptr)
-            glDeleteShader(geometry);
 
     }
     // activate the shader
@@ -108,7 +111,7 @@ public:
     // ------------------------------------------------------------------------
     void setBool(const std::string &name, bool value) const
     {
-        glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+      glUniform1i(glGetUniformLocation(ID, name.c_str()), static_cast<int>(value));
     }
     // ------------------------------------------------------------------------
     void setInt(const std::string &name, int value) const
